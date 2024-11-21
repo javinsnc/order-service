@@ -1,8 +1,8 @@
 version: '4'
 services:
-  order-service-mysql:
+  mysql:
     image: mysql:8.3.0
-    container_name: mysql
+    container_name: order-service-mysql
     environment:
       MYSQL_ROOT_PASSWORD: mysql
     ports:
