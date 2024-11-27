@@ -49,7 +49,7 @@ class OrderServiceApplicationTests {
 				}
 				""";
 
-		InventoryClientStub.stubInventoryCall("iphone_15", 1);
+		InventoryClientStub.stubInventoryCall("iphone_15", 1, "true");
 
 		final var responseBodyString = RestAssured.given()
 				.contentType("application/json")
