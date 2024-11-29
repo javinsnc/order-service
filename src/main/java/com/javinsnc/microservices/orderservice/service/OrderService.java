@@ -38,11 +38,16 @@ public class OrderService {
             orderRepository.save(order);
 
             // Send the messages to Kafka Topic
-            OrderPlacedEvent orderPlacedEvent = new OrderPlacedEvent(orderRequest.orderNumber(), orderRequest.userDetails().email());
+            OrderPlacedEvent orderPlacedEvent = new OrderPlacedEvent(
+                    orderRequest.orderNumber(),
+                    orderRequest.userDetails().email(),
+                    orderRequest.userDetails().firstName(),
+                    orderRequest.userDetails().lastName()
+            );
 
-            log.info("Start - Sending OrderPlacedEvent {} to Kafka topoc order-service", orderPlacedEvent);
+            log.info("Start - Sending OrderPlacedEvent {} to Kafka topic order-service", orderPlacedEvent);
             kafkaTemplate.send("order-placed", orderPlacedEvent);
-            log.info("End - Sending OrderPlacedEvent {} to Kafka topoc order-service", orderPlacedEvent);
+            log.info("End - Sending OrderPlacedEvent {} to Kafka topic order-service", orderPlacedEvent);
         } else {
             throw new RuntimeException("Product is out of stock");
         }
