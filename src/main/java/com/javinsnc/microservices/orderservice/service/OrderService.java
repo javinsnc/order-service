@@ -2,19 +2,25 @@ package com.javinsnc.microservices.orderservice.service;
 
 import com.javinsnc.microservices.orderservice.client.InventoryClient;
 import com.javinsnc.microservices.orderservice.dto.OrderRequest;
+import com.javinsnc.microservices.orderservice.event.OrderPlacedEvent;
 import com.javinsnc.microservices.orderservice.model.Order;
 import com.javinsnc.microservices.orderservice.repository.OrderRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final InventoryClient inventoryClient;
+    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
-    public OrderService(OrderRepository orderRepository, InventoryClient inventoryClient) {
+    public OrderService(OrderRepository orderRepository, InventoryClient inventoryClient, KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate) {
         this.orderRepository = orderRepository;
         this.inventoryClient = inventoryClient;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public void placeOrder(OrderRequest orderRequest) {
@@ -30,6 +36,13 @@ public class OrderService {
             );
 
             orderRepository.save(order);
+
+            // Send the messages to Kafka Topic
+            OrderPlacedEvent orderPlacedEvent = new OrderPlacedEvent(orderRequest.orderNumber(), orderRequest.userDetails().email());
+
+            log.info("Start - Sending OrderPlacedEvent {} to Kafka topoc order-service", orderPlacedEvent);
+            kafkaTemplate.send("order-placed", orderPlacedEvent);
+            log.info("End - Sending OrderPlacedEvent {} to Kafka topoc order-service", orderPlacedEvent);
         } else {
             throw new RuntimeException("Product is out of stock");
         }
